@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useMemo, useState } from "react";
-import { AutoBoneEpochT, AutoBoneProcessRequestT, AutoBoneProcessStatusT, AutoBoneProcessType, RpcMessage, SkeletonConfigRequestT, SkeletonPartT } from "solarxr-protocol";
+import { AutoBoneEpochResponseT, AutoBoneProcessRequestT, AutoBoneProcessStatusResponseT, AutoBoneProcessType, RpcMessage, SkeletonConfigRequestT, SkeletonPartT } from "solarxr-protocol";
 import { useWebsocketAPI } from "../../hooks/websocket-api";
 import { Button } from "../commons/Button";
 import { AppModal } from "../Modal";
@@ -45,7 +45,7 @@ export function AutomaticCalibration() {
         startProcess(AutoBoneProcessType.PROCESS);
     }
 
-    useRPCPacket(RpcMessage.AutoBoneProcessStatus, (data: AutoBoneProcessStatusT) => {
+    useRPCPacket(RpcMessage.AutoBoneProcessStatusResponse, (data: AutoBoneProcessStatusResponseT) => {
         if (data.completed) {
             setProcessRunning(false);
             setProgress(1);
@@ -81,7 +81,7 @@ export function AutomaticCalibration() {
         }
     })
 
-    useRPCPacket(RpcMessage.AutoBoneEpoch, (data: AutoBoneEpochT) => {
+    useRPCPacket(RpcMessage.AutoBoneEpochResponse, (data: AutoBoneEpochResponseT) => {
         setProgress(data.currentEpoch/data.totalEpochs);
 
         // Probably not necessary to show to the user
