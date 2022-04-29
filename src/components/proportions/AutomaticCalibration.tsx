@@ -1,20 +1,25 @@
 import classNames from "classnames";
-import { useState } from "react";
-import { AutoBoneEpochT, AutoBoneProcessRequestT, AutoBoneProcessStatusT, AutoBoneProcessType, RpcMessage } from "solarxr-protocol";
+import { useMemo, useState } from "react";
+import { AutoBoneEpochT, AutoBoneProcessRequestT, AutoBoneProcessStatusT, AutoBoneProcessType, RpcMessage, SkeletonConfigRequestT, SkeletonPartT } from "solarxr-protocol";
 import { useWebsocketAPI } from "../../hooks/websocket-api";
 import { Button } from "../commons/Button";
 import { AppModal } from "../Modal";
-
+import { bodyPartLabels } from "./BodyProportions";
 
 export function AutomaticCalibration() {
+    const { useRPCPacket, sendRPCPacket } = useWebsocketAPI();
 
     const [isOpen, setOpen] = useState(false);
     const [isProcessRunning, setProcessRunning] = useState(false);
     const [hasRecording, setHasRecording] = useState(false);
     const [hasCalibration, setHasCalibration] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [skeletonParts, setSkeletonParts] = useState<SkeletonPartT[] | null>(null);
+    const [selectedBodyPart, setSelectedBodyPart] = useState<number | null>(null);
 
-    const { useRPCPacket, sendRPCPacket } = useWebsocketAPI();
+    const bodyParts = useMemo(() => {
+        return skeletonParts?.map(({ bone, value }) => ({ bone, label: bodyPartLabels[bone], value })) || []
+    }, [skeletonParts])
 
     const startProcess = (processType: AutoBoneProcessType) => {
         // Don't allow multiple processes at once (for now atleast)
@@ -67,6 +72,11 @@ export function AutomaticCalibration() {
                     case AutoBoneProcessType.PROCESS:
                         setHasCalibration(data.success);
                         break;
+
+                    case AutoBoneProcessType.APPLY:
+                        // Update skeleton config when applied
+                        sendRPCPacket(RpcMessage.SkeletonConfigRequest, new SkeletonConfigRequestT())
+                        break;
                 }
             }
         }
@@ -78,17 +88,15 @@ export function AutomaticCalibration() {
         // Probably not necessary to show to the user
         console.log("Epoch ", data.currentEpoch, "/", data.totalEpochs, " (Error ", data.epochError, ")");
 
-        if (data.adjustedSkeletonParts) {
-            // Display measurements
-        }
+        setSkeletonParts(data.adjustedSkeletonParts);
     })
 
     return (
         <>
             <Button variant="primary" onClick={() => setOpen(true)}>Automatic calibration</Button>
-            <AppModal 
-                isOpen={isOpen} 
-                name={<>Automatic Calibration</>} 
+            <AppModal
+                isOpen={isOpen}
+                name={<>Automatic Calibration</>}
                 onRequestClose={() => setOpen(false)}
             >
                 <>
@@ -101,6 +109,16 @@ export function AutomaticCalibration() {
                         <div className="w-full rounded-full h-full overflow-hidden relative bg-fuchsia-900">
                             <div className={classNames("h-full top-0 left-0 bg-fuchsia-400", { 'transition-all': progress > 0})} style={{width: `${progress * 100}%`}}></div>
                         </div>
+                    </div>
+                    <div className="flex flex-col w-full p-2">
+                        {bodyParts.map(({label, bone, value}) =>
+                            <div key={bone} onMouseEnter={() => setSelectedBodyPart(bone)} onMouseLeave={() => setSelectedBodyPart(null)} className={classNames('px-3 rounded-lg py-2', { 'bg-primary-2 ': bone === selectedBodyPart })}>
+                                <div className="flex flex-row gap-5">
+                                    <div className="flex flex-grow text-lg font-bold text-white justify-start items-center">{label}</div>
+                                    <div className="flex justify-center items-center w-16 text-white text-lg font-bold">{`${Number(value * 100).toFixed(1).replace(/[.,]0$/, "")}cm`}</div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div className="flex w-full justify-between mt-3">
                         <Button variant="primary" onClick={() => setOpen(false)}>Close</Button>
