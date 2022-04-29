@@ -52,8 +52,12 @@ export function AutomaticCalibration() {
                 console.log(data.processType, data.message);
             }
 
+            if (data.total > 0 && data.current >= 0) {
+                setProgress(data.current / data.total);
+            }
+
             if (data.completed) {
-                console.log("Process ", data.processType, " has completed");
+                console.log("Process ", AutoBoneProcessType[data.processType], " has completed");
 
                 switch (data.processType) {
                     case AutoBoneProcessType.RECORD:
