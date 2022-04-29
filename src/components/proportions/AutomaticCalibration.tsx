@@ -15,7 +15,6 @@ export function AutomaticCalibration() {
     const [hasCalibration, setHasCalibration] = useState(false);
     const [progress, setProgress] = useState(0);
     const [skeletonParts, setSkeletonParts] = useState<SkeletonPartT[] | null>(null);
-    const [selectedBodyPart, setSelectedBodyPart] = useState<number | null>(null);
 
     const bodyParts = useMemo(() => {
         return skeletonParts?.map(({ bone, value }) => ({ bone, label: bodyPartLabels[bone], value })) || []
@@ -106,16 +105,16 @@ export function AutomaticCalibration() {
                     <Button variant="primary" onClick={startProcessing} disabled={isProcessRunning}>Start Calibration</Button>
                     </div>
                     <div className="flex flex-col w-full h-12 p-2">
-                        <div className="w-full rounded-full h-full overflow-hidden relative bg-fuchsia-900">
-                            <div className={classNames("h-full top-0 left-0 bg-fuchsia-400", { 'transition-all': progress > 0})} style={{width: `${progress * 100}%`}}></div>
+                        <div className="w-full rounded-full h-full overflow-hidden relative bg-purple-gray-800">
+                            <div className={classNames("h-full top-0 left-0 bg-purple-gray-300", { 'transition-all': progress > 0})} style={{width: `${progress * 100}%`}}></div>
                         </div>
                     </div>
                     <div className="flex flex-col w-full p-2">
                         {bodyParts.map(({label, bone, value}) =>
-                            <div key={bone} onMouseEnter={() => setSelectedBodyPart(bone)} onMouseLeave={() => setSelectedBodyPart(null)} className={classNames('px-3 rounded-lg py-2', { 'bg-primary-2 ': bone === selectedBodyPart })}>
+                            <div key={bone} className="px-3 rounded-lg py-2 hover:bg-purple-gray-600">
                                 <div className="flex flex-row gap-5">
-                                    <div className="flex flex-grow text-lg font-bold text-white justify-start items-center">{label}</div>
-                                    <div className="flex justify-center items-center w-16 text-white text-lg font-bold">{`${Number(value * 100).toFixed(1).replace(/[.,]0$/, "")}cm`}</div>
+                                    <div className="flex flex-grow justify-start items-center text-field-title">{label}</div>
+                                    <div className="flex justify-center items-center w-16 text-field-title">{`${Number(value * 100).toFixed(1).replace(/[.,]0$/, "")}cm`}</div>
                                 </div>
                             </div>
                         )}
