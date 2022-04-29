@@ -49,7 +49,7 @@ export function AutomaticCalibration() {
 
         if (data.processType) {
             if (data.message) {
-                console.log(data.processType, data.message);
+                console.log(AutoBoneProcessType[data.processType], ": ", data.message);
             }
 
             if (data.total > 0 && data.current >= 0) {
